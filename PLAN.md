@@ -13,7 +13,7 @@ Dokumen ini adalah rencana kerja universal dan log perkembangan proyek pembuatan
 - **Audio**: Web Audio API Sintetis
 - **Penyimpanan**: LocalStorage (`arcade_leaderboard`, `arcade_last_username`, `arcade_theme`, `arcade_sound`)
 - **Kebijakan Caching**: Zero-Cache (`no-cache, no-store, must-revalidate`)
-- **Deployment**: GitHub Pages (Branch `main`, path `/`) — *menunggu kredensial GitHub*
+- **Deployment**: GitHub Pages (Branch `main`, path `/`) → `https://naraisyhf.github.io/asteroid-dodge/`
 
 ---
 
@@ -52,11 +52,11 @@ Dokumen ini adalah rencana kerja universal dan log perkembangan proyek pembuatan
 
 ### Phase 5: Publikasi GitHub Pages
 - [x] Inisialisasi git dan branch `main` (commit lokal).
-- [ ] Buat repository GitHub publik via GitHub CLI (`gh repo create <repo> --public --source=. --remote=origin --push`). *Wajib berstatus Public agar GitHub Pages gratis dapat aktif.* — **BLOCKED: `gh` tidak terpasang dan belum ada kredensial GitHub.**
-- [ ] Aktifkan GitHub Pages (Metode CLI `gh api` atau manual via Web UI Settings > Pages branch `main` root `/`). — **BLOCKED: menunggu repo remote.**
+- [x] Buat repository GitHub publik via GitHub CLI (`gh repo create`): `naraaisyhf/asteroid-dodge`.
+- [x] Aktifkan GitHub Pages (REST API `POST /repos/.../pages`, source `main` root `/`); build pertama sukses.
 - [x] Kompatibilitas Google AI Studio: Sediakan snippet perintah terminal siap salin jika proyek dilanjutkan lewat antarmuka web (lihat README).
-- [ ] Pantau status workflow build di tab Actions (`gh run list`). — **BLOCKED: belum ada remote.**
-- [ ] Tes live demo (`https://<username>.github.io/<repo>/`) dan pastikan pembaruan langsung tampil tanpa hambatan cache (Zero-Cache test). — **BLOCKED: belum ada remote.**
+- [ ] Pantau status workflow build di tab Actions (`gh run list`). — N/A: Pages legacy build (tanpa workflow), build berstatus `built`.
+- [ ] Tes live demo (`https://naraisyhf.github.io/asteroid-dodge/`) — **BLOCKED eksternal**: URL publik mengembalikan 404 karena akun `naraisyhf` juga 404 untuk publik (kemungkinan akun ditinjau/dibatasi GitHub). Repository & Pages sudah ada dan push berhasil (diverifikasi via `git ls-remote`).
 
 ---
 
@@ -70,7 +70,7 @@ Dokumen ini adalah rencana kerja universal dan log perkembangan proyek pembuatan
 | **T-03** | Modul Input Username & Leaderboard Top 10 | Phase 2 | `DONE` | AI | LocalStorage CRUD, validasi anti-XSS, UI tabel |
 | **T-04** | Logika Pergerakan, Rintangan & Tabrakan | Phase 3 | `DONE` | AI | Level scaling, collision, shield, slow-mo |
 | **T-05** | Efek Suara Synth Web Audio API & Partikel | Phase 4 | `DONE` | AI | Audio sintetis, particle trail, screen shake |
-| **T-06** | Deployment GitHub Pages via GitHub CLI (`gh`) | Phase 5 | `BLOCKED` | AI | `gh` tidak terpasang & belum ada kredensial; commit lokal siap push |
+| **T-06** | Deployment GitHub Pages via GitHub CLI (`gh`) | Phase 5 | `BLOCKED` | AI | Repo `naraaisyhf/asteroid-dodge` + Pages build `built`; URL publik 404 karena akun GitHub dibatasi |
 
 *Status: `TODO` | `IN-PROGRESS` | `DONE` | `BLOCKED`*
 
@@ -80,7 +80,8 @@ Dokumen ini adalah rencana kerja universal dan log perkembangan proyek pembuatan
 
 | Versi | Tanggal | Pelaksana | Ringkasan Perubahan | Referensi Commit |
 | :--- | :--- | :--- | :--- | :--- |
-| **v0.3.0** | 2026-11-14 | AI | Implementasi penuh Asteroid Dodge (canvas, leaderboard, audio, power-up, tema) + README & commit lokal; deploy remote tertunda | `main` (lokal) |
+| **v0.3.1** | 2026-11-14 | AI | Repo publik `naraaisyhf/asteroid-dodge` dibuat & di-push; GitHub Pages diaktifkan dan build sukses; URL publik 404 karena pembatasan akun GitHub | `66e5b99` |
+| **v0.3.0** | 2026-11-14 | AI | Implementasi penuh Asteroid Dodge (canvas, leaderboard, audio, power-up, tema) + README & commit lokal; deploy remote tertunda | `66e5b99` |
 | **v0.2.2** | 2026-10-24 | AI | Menambahkan panduan alur integrasi khusus Google AI Studio & penegasan repo wajib Public | `07475fb` |
 | **v0.2.1** | 2026-10-24 | AI | Menambahkan panduan detail aktivasi GitHub Pages (CLI gh api & Web UI visual) serta troubleshooting | `3aaf671` |
 | **v0.2.0** | 2026-10-24 | AI | Konfigurasi ulang ke Single Model AI untuk siswa, modularisasi 8 blok kode, dan penyesuaian matriks tugas | `2954bb0` |

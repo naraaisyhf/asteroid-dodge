@@ -2,6 +2,9 @@
 
 > Game arcade 2D endless runner: hindari hujan asteroid, kumpulkan power-up, dan rebut peringkat teratas papan skor. Dibuat sebagai materi belajar siswa dalam satu file `index.html`.
 
+**Repository:** https://github.com/naraaisyhf/asteroid-dodge
+**Live Demo:** https://naraisyhf.github.io/asteroid-dodge/
+
 Game dapat dimainkan langsung dengan membuka `index.html` di browser — tanpa build tools, tanpa dependensi eksternal, tanpa server.
 
 ## Fitur Utama
@@ -46,12 +49,11 @@ git branch -M main
 git add .
 git commit -m "feat: initial release of Asteroid Dodge"
 gh repo create asteroid-dodge --public --source=. --remote=origin --push
-gh api --method POST -H "Accept: application/vnd.github+json" \
-  /repos/<username>/asteroid-dodge/pages \
-  -f source='{"branch":"main","path":"/"}'
+gh api --method POST repos/naraisyhf/asteroid-dodge/pages \
+  --input - <<< '{"source":{"branch":"main","path":"/"}}'
 ```
 
-Live demo: `https://<username>.github.io/asteroid-dodge/`
+Live demo: `https://naraisyhf.github.io/asteroid-dodge/`
 
 ## Kontrol
 
