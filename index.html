@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Asteroid Dodge — Arcade Endless Runner</title>
+  <meta name="description" content="Asteroid Dodge: game arcade 2D endless runner. Hindari hujan asteroid, kumpulkan power-up, dan rebut peringkat teratas papan skor.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="theme-color" content="#070b18">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>☄️</text></svg>">
+
+  <style>
+    :root {
+      --font-main: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+      --bg-body: #eef2f9;
+      --bg-panel: rgba(255, 255, 255, 0.86);
+      --bg-panel-solid: #ffffff;
+      --border-color: rgba(15, 23, 42, 0.12);
+      --text-main: #0f172a;
+      --text-muted: #5b6b82;
+      --primary: #0891b2;
+      --primary-hover: #0e7490;
+      --accent: #c026d3;
+      --danger: #dc2626;
+      --success: #059669;
+      --shadow: 0 18px 40px -18px rgba(15, 23, 42, 0.45);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+      --game-bg1: #cfdcef;
+      --game-bg2: #eef3fa;
+      --game-star: #475569;
+      --game-ship: #0e7490;
+      --game-ship-glow: #06b6d4;
+      --game-asteroid: #334155;
+      --game-asteroid-line: #0f172a;
+      --game-accent: #c026d3;
+      --game-danger: #dc2626;
+      --game-shield: #0ea5e9;
+      --game-slow: #7c3aed;
+    }
+
+    html.dark {
+      --bg-body: #05080f;
+      --bg-panel: rgba(13, 20, 36, 0.82);
+      --bg-panel-solid: #0d1424;
+      --border-color: rgba(148, 163, 184, 0.18);
+      --text-main: #e6ecf7;
+      --text-muted: #93a4bd;
+      --primary: #22d3ee;
+      --primary-hover: #67e8f9;
+      --accent: #e879f9;
+      --danger: #fb7185;
+      --success: #34d399;
+      --shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.9);
+
+      --game-bg1: #070b18;
+      --game-bg2: #101a33;
+      --game-star: #ffffff;
+      --game-ship: #22d3ee;
+      --game-ship-glow: #67e8f9;
+      --game-asteroid: #64748b;
+      --game-asteroid-line: #cbd5e1;
+      --game-accent: #e879f9;
+      --game-danger: #fb7185;
+      --game-shield: #38bdf8;
+      --game-slow: #a78bfa;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: var(--font-main);
+      color: var(--text-main);
+      background:
+        radial-gradient(900px 520px at 12% -8%, rgba(34, 211, 238, 0.16), transparent 62%),
+        radial-gradient(760px 480px at 92% 8%, rgba(232, 121, 249, 0.14), transparent 60%),
+        var(--bg-body);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 14px 20px;
+      transition: background-color var(--transition), color var(--transition);
+    }
+
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+
+    .topbar {
+      width: min(100%, 460px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-logo {
+      width: 38px; height: 38px; flex: none;
+      display: grid; place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(150deg, var(--primary), var(--accent));
+      color: #04121a;
+      box-shadow: 0 8px 24px -10px var(--primary);
+      font-size: 20px;
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+    .brand-title {
+      font-size: 15px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    .brand-sub { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.16em; text-transform: uppercase; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 6px; }
+
+    .icon-btn {
+      width: 38px; height: 38px;
+      display: grid; place-items: center;
+      border-radius: 11px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel);
+      color: var(--text-main);
+      transition: var(--transition);
+    }
+    .icon-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
+    .icon-btn:active { transform: translateY(0) scale(0.97); }
+    .icon-btn svg { width: 18px; height: 18px; }
+
+    .stage {
+      position: relative;
+      width: min(94vw, 460px);
+      height: min(74dvh, 690px);
+      min-height: 430px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--game-bg1);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+      touch-action: none;
+    }
+
+    #game-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+    .hud {
+      position: absolute; inset: 12px 12px auto;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+      pointer-events: none;
+      z-index: 3;
+      font-family: var(--font-mono);
+    }
+
+    .hud-group { display: flex; flex-direction: column; gap: 6px; }
+    .hud-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 11px;
+      padding: 7px 11px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      min-width: 84px;
+    }
+    .hud-label {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-muted); font-weight: 600;
+    }
+    .hud-value { font-size: 20px; font-weight: 700; line-height: 1.1; letter-spacing: 0.02em; }
+    .hud-value.accent { color: var(--accent); }
+    .hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .hud-chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; min-height: 22px; }
+    .chip {
+      font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 4px 8px; border-radius: 999px;
+      border: 1px solid currentColor;
+      background: var(--bg-panel);
+    }
+    .chip.shield { color: var(--game-shield); }
+    .chip.slow { color: var(--game-slow); }
+    .chip[hidden] { display: none; }
+
+    .pause-btn {
+      pointer-events: auto;
+      width: 38px; height: 38px;
+      display: grid; place-items: center;
+      border-radius: 11px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel);
+      color: var(--text-main);
+      transition: var(--transition);
+    }
+    .pause-btn:hover { color: var(--primary); border-color: var(--primary); }
+    .pause-btn svg { width: 16px; height: 16px; }
+
+    .overlay {
+      position: absolute; inset: 0;
+      z-index: 5;
+      display: grid; place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(360px 240px at 50% 0%, rgba(34, 211, 238, 0.12), transparent 70%),
+        rgba(4, 8, 16, 0.66);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      opacity: 1;
+      transition: opacity var(--transition), visibility var(--transition);
+    }
+    html:not(.dark) .overlay {
+      background:
+        radial-gradient(360px 240px at 50% 0%, rgba(8, 145, 178, 0.14), transparent 70%),
+        rgba(226, 234, 245, 0.7);
+    }
+    .overlay[hidden] { display: none; }
+
+    .panel {
+      width: min(100%, 360px);
+      max-height: 100%;
+      overflow-y: auto;
+      text-align: center;
+      background: var(--bg-panel-solid);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
+      animation: panelIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .panel h1, .panel h2 {
+      font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+    }
+    .panel h2 { font-size: 24px; }
+    .panel .lead {
+      margin-top: 9px;
+      font-size: 13px; color: var(--text-muted); line-height: 1.55;
+    }
+
+    .stat-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-top: 18px;
+    }
+    .stat {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 9px 6px;
+      background: linear-gradient(180deg, rgba(34, 211, 238, 0.07), transparent);
+    }
+    .stat-label { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); }
+    .stat-value { font-family: var(--font-mono); font-size: 19px; font-weight: 700; margin-top: 3px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em;
+      transition: var(--transition);
+    }
+    .btn-primary {
+      color: #04121a;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      box-shadow: 0 12px 26px -14px var(--primary);
+    }
+    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0) scale(0.99); }
+    .btn-ghost {
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-main);
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-danger { border: 1px solid var(--border-color); color: var(--danger); }
+    .btn-danger:hover { border-color: var(--danger); background: rgba(251, 113, 133, 0.08); }
+
+    .btn-stack { display: grid; gap: 8px; margin-top: 18px; }
+    .btn-inline { display: flex; gap: 8px; }
+
+    .pilot-row {
+      margin-top: 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      border: 1px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 8px 8px 8px 12px;
+      font-size: 12px;
+    }
+    .pilot-name { font-weight: 700; }
+    .pilot-edit {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--primary);
+      padding: 5px 8px; border-radius: 8px;
+    }
+    .pilot-edit:hover { background: rgba(34, 211, 238, 0.1); }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 11px; color: var(--text-muted); line-height: 1.5;
+    }
+    .hint kbd {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      border: 1px solid var(--border-color);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      padding: 1px 5px;
+      background: var(--bg-panel);
+    }
+
+    .mode-pills { display: flex; gap: 6px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+    .mode-pill {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+
+    .record-badge {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #04121a;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .record-badge[hidden] { display: none; }
+
+    .leaderboard-list {
+      margin-top: 16px;
+      display: grid; gap: 5px;
+      text-align: left;
+      max-height: 290px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .lb-row {
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      align-items: center; gap: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: rgba(148, 163, 184, 0.09);
+      font-size: 12.5px;
+    }
+    .lb-row.is-top { border-color: rgba(232, 121, 249, 0.4); background: rgba(232, 121, 249, 0.1); }
+    .lb-row.is-me { border-color: var(--primary); background: rgba(34, 211, 238, 0.12); }
+    .lb-rank { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-muted); }
+    .lb-row.is-top .lb-rank { color: var(--accent); }
+    .lb-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lb-score { font-family: var(--font-mono); font-weight: 700; }
+    .lb-empty {
+      text-align: center; color: var(--text-muted); font-size: 12px;
+      padding: 26px 10px;
+      border: 1px dashed var(--border-color);
+      border-radius: 12px;
+      line-height: 1.6;
+    }
+
+    .modal-backdrop {
+      position: absolute; inset: 0; z-index: 8;
+      display: grid; place-items: center;
+      padding: 18px;
+      background: rgba(3, 6, 12, 0.74);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: opacity var(--transition), visibility var(--transition);
+    }
+    .modal-backdrop[hidden] { display: none; }
+
+    .field { margin-top: 18px; text-align: left; }
+    .field label {
+      display: block;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 11px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-body);
+      color: var(--text-main);
+      font-size: 14px; font-weight: 600;
+      transition: var(--transition);
+    }
+    html.dark .field input { background: rgba(148, 163, 184, 0.08); }
+    .field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16); }
+    .field-error {
+      min-height: 16px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--danger);
+    }
+
+    .toast-container {
+      position: absolute;
+      left: 50%; top: 84px;
+      transform: translateX(-50%);
+      z-index: 7;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      pointer-events: none;
+      width: max-content;
+      max-width: 90%;
+    }
+    .toast {
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel-solid);
+      color: var(--text-main);
+      box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.toast-accent { border-color: var(--accent); color: var(--accent); }
+    .toast.toast-danger { border-color: var(--danger); color: var(--danger); }
+    .toast.toast-success { border-color: var(--success); color: var(--success); }
+
+    .sound-off-line { text-decoration: line-through; opacity: 0.4; }
+
+    footer {
+      width: min(100%, 460px);
+      text-align: center;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    @media (max-width: 420px) {
+      .panel { padding: 20px 16px; }
+      .panel h1 { font-size: 24px; }
+      .hud-value { font-size: 17px; }
+      .hud-card { min-width: 72px; padding: 6px 9px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">☄️</div>
+      <div class="brand-text">
+        <span class="brand-title">Asteroid Dodge</span>
+        <span class="brand-sub">Endless Arcade</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="sound-toggle" type="button" aria-label="Matikan suara" title="Suara">
+        <svg id="icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+          <path d="M18.5 5.5a9 9 0 0 1 0 13"></path>
+        </svg>
+        <svg id="icon-sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+          <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+          <path d="m16 9 5 6M21 9l-5 6"></path>
+        </svg>
+      </button>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Ganti tema" title="Tema terang/gelap">
+        <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+        </svg>
+        <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <canvas id="game-canvas" aria-label="Area permainan Asteroid Dodge"></canvas>
+
+    <div class="hud" aria-live="off">
+      <div class="hud-group">
+        <div class="hud-card">
+          <div class="hud-label">Skor</div>
+          <div class="hud-value" id="hud-score">0</div>
+        </div>
+        <div class="hud-card">
+          <div class="hud-label">Level</div>
+          <div class="hud-value accent" id="hud-level">1</div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button class="pause-btn" id="pause-btn" type="button" aria-label="Jeda permainan" hidden>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+        </button>
+        <div class="hud-chips">
+          <span class="chip shield" id="chip-shield" hidden>Shield</span>
+          <span class="chip slow" id="chip-slow" hidden>Slow-Mo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <section class="overlay" id="screen-menu">
+      <div class="panel">
+        <p class="eyebrow">Sektor 7 · Jalur Asteroid</p>
+        <h1>Hindari Hujan Batu!</h1>
+        <p class="lead">Kemudikan kapsul neon, selamat dari asteroid yang makin ganas, dan kumpulkan skor tertinggi.</p>
+        <div class="pilot-row">
+          <span>Pilot: <span class="pilot-name" id="menu-pilot-name">Tamu</span></span>
+          <button class="pilot-edit" id="edit-pilot" type="button">Ubah</button>
+        </div>
+        <div class="mode-pills">
+          <span class="mode-pill">Endless</span>
+          <span class="mode-pill">Power-Up</span>
+          <span class="mode-pill">Top 10</span>
+        </div>
+        <div class="btn-stack">
+          <button class="btn btn-primary" id="btn-play" type="button">Mulai Misi</button>
+          <div class="btn-inline">
+            <button class="btn btn-ghost" id="btn-leaderboard" type="button">Papan Skor</button>
+            <button class="btn btn-ghost" id="btn-help" type="button">Cara Main</button>
+          </div>
+        </div>
+        <p class="hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> atau <kbd>A</kbd> <kbd>D</kbd> untuk bergerak. Di ponsel: sentuh &amp; geser.</p>
+      </div>
+    </section>
+
+    <section class="overlay" id="screen-help" hidden>
+      <div class="panel">
+        <p class="eyebrow">Panduan Pilot</p>
+        <h2>Cara Main</h2>
+        <p class="lead" style="text-align:left">
+          <strong>1. Bergerak</strong> — Gunakan panah kiri/kanan, A/D, atau geser jari di layar.<br><br>
+          <strong>2. Bertahan</strong> — Setiap asteroid yang terlewat memberi bonus skor. Tabrakan mengakhiri misi.<br><br>
+          <strong>3. Power-Up</strong> — <span style="color:var(--game-shield);font-weight:700">Shield</span> menahan satu tabrakan, <span style="color:var(--game-slow);font-weight:700">Slow-Mo</span> memperlambat asteroid selama 5 detik.<br><br>
+          <strong>4. Level</strong> — Tiap 15 detik kecepatan dan kerapatan asteroid meningkat.<br><br>
+          <strong>5. Jeda</strong> — Tekan <kbd>Esc</kbd> atau <kbd>P</kbd> saat bermain.
+        </p>
+        <div class="btn-stack">
+          <button class="btn btn-primary" data-back type="button">Mengerti</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="overlay" id="screen-leaderboard" hidden>
+      <div class="panel">
+        <p class="eyebrow">Hall of Fame</p>
+        <h2>Papan Skor</h2>
+        <p class="lead">Sepuluh pilot terbaik di sektor ini.</p>
+        <div class="leaderboard-list" id="leaderboard-list"></div>
+        <div class="btn-stack">
+          <button class="btn btn-ghost" id="btn-lb-back" type="button">Kembali</button>
+          <button class="btn btn-danger" id="btn-lb-reset" type="button">Reset Papan Skor</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="overlay" id="screen-pause" hidden>
+      <div class="panel">
+        <p class="eyebrow">Misi Dijeda</p>
+        <h2>Pause</h2>
+        <p class="lead">Tarik napas, pilot. Asteroid menunggu.</p>
+        <div class="btn-stack">
+          <button class="btn btn-primary" id="btn-resume" type="button">Lanjutkan</button>
+          <button class="btn btn-ghost" id="btn-pause-menu" type="button">Kembali ke Menu</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="overlay" id="screen-gameover" hidden>
+      <div class="panel">
+        <p class="eyebrow">Misi Berakhir</p>
+        <h2>Kapsul Hancur</h2>
+        <span class="record-badge" id="record-badge" hidden>Rekor Baru!</span>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-label">Skor</div>
+            <div class="stat-value" id="go-score">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Level</div>
+            <div class="stat-value" id="go-level">1</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Waktu</div>
+            <div class="stat-value" id="go-time">0s</div>
+          </div>
+        </div>
+        <div class="btn-stack">
+          <button class="btn btn-primary" id="btn-retry" type="button">Main Lagi</button>
+          <div class="btn-inline">
+            <button class="btn btn-ghost" id="btn-go-leaderboard" type="button">Papan Skor</button>
+            <button class="btn btn-ghost" id="btn-go-menu" type="button">Menu</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="modal-backdrop" id="username-modal" hidden>
+      <div class="panel" role="dialog" aria-modal="true" aria-labelledby="username-title">
+        <p class="eyebrow">Registrasi Pilot</p>
+        <h2 id="username-title">Siapa Namamu?</h2>
+        <p class="lead">Nama ini akan tampil di papan skor.</p>
+        <form id="username-form" novalidate>
+          <div class="field">
+            <label for="username-input">Nama Pilot</label>
+            <input id="username-input" type="text" maxlength="15" autocomplete="nickname" placeholder="Contoh: Nova" aria-describedby="username-error">
+            <div class="field-error" id="username-error" role="alert"></div>
+          </div>
+          <div class="btn-stack">
+            <button class="btn btn-primary" type="submit">Simpan &amp; Lanjut</button>
+            <button class="btn btn-ghost" id="username-cancel" type="button">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; <span id="year"></span> Asteroid Dodge — Vanilla HTML, CSS &amp; JavaScript. Tanpa build tools.</p>
+  </footer>
+
+  <script>
+    'use strict';
+
+    const Game = {
+      KEYS: {
+        leaderboard: 'arcade_leaderboard',
+        lastUsername: 'arcade_last_username',
+        theme: 'arcade_theme',
+        sound: 'arcade_sound'
+      },
+
+      SPAWN_BASE: 0.95,
+      LEVEL_DURATION: 15,
+      MAX_LEADERBOARD: 10,
+
+      state: {
+        theme: 'dark',
+        soundOn: true,
+        screen: 'menu',
+        playing: false,
+        paused: false,
+        username: '',
+        leaderboard: [],
+        lastEntry: null,
+        score: 0,
+        scoreShown: 0,
+        level: 1,
+        elapsed: 0,
+        best: 0,
+        shield: false,
+        slowUntil: 0,
+        nextPowerAt: 0,
+        spawnTimer: 0,
+        shake: 0,
+        invulnUntil: 0,
+        passed: 0,
+        savedThisRun: false,
+        player: { x: 0, y: 0, targetX: null, radius: 14 },
+        asteroids: [],
+        particles: [],
+        powerups: [],
+        stars: [],
+        trailTimer: 0,
+        levelFlash: 0
+      },
+
+      dom: {},
+      palette: {},
+      audio: null,
+      lastFrame: 0,
+      rafId: 0,
+      canvasW: 0,
+      canvasH: 0,
+      leaderboardReturn: 'menu',
+
+      /* ============================================================
+         INIT
+         ============================================================ */
+      init() {
+        this.cacheDOM();
+        this.loadState();
+        this.applyTheme();
+        this.applySound();
+        this.bindEvents();
+        this.resize();
+        this.updatePilotUI();
+        this.renderLeaderboard();
+        this.showScreen('menu');
+        this.state.lastFrame = performance.now();
+        this.rafId = requestAnimationFrame((t) => this.loop(t));
+
+        if (!this.state.username) {
+          this.openUsernameModal(true);
+        }
+      },
+
+      cacheDOM() {
+        const $ = (id) => document.getElementById(id);
+        this.dom = {
+          html: document.documentElement,
+          stage: $('stage'),
+          canvas: $('game-canvas'),
+          year: $('year'),
+          hudScore: $('hud-score'),
+          hudLevel: $('hud-level'),
+          chipShield: $('chip-shield'),
+          chipSlow: $('chip-slow'),
+          pauseBtn: $('pause-btn'),
+          soundToggle: $('sound-toggle'),
+          iconSoundOn: $('icon-sound-on'),
+          iconSoundOff: $('icon-sound-off'),
+          themeToggle: $('theme-toggle'),
+          iconMoon: $('icon-moon'),
+          iconSun: $('icon-sun'),
+          screens: {
+            menu: $('screen-menu'),
+            help: $('screen-help'),
+            leaderboard: $('screen-leaderboard'),
+            pause: $('screen-pause'),
+            gameover: $('screen-gameover')
+          },
+          menuPilotName: $('menu-pilot-name'),
+          editPilot: $('edit-pilot'),
+          btnPlay: $('btn-play'),
+          btnLeaderboard: $('btn-leaderboard'),
+          btnHelp: $('btn-help'),
+          btnLbBack: $('btn-lb-back'),
+          btnLbReset: $('btn-lb-reset'),
+          btnResume: $('btn-resume'),
+          btnPauseMenu: $('btn-pause-menu'),
+          btnRetry: $('btn-retry'),
+          btnGoLeaderboard: $('btn-go-leaderboard'),
+          btnGoMenu: $('btn-go-menu'),
+          leaderboardList: $('leaderboard-list'),
+          goScore: $('go-score'),
+          goLevel: $('go-level'),
+          goTime: $('go-time'),
+          recordBadge: $('record-badge'),
+          toastContainer: $('toast-container'),
+          usernameModal: $('username-modal'),
+          usernameForm: $('username-form'),
+          usernameInput: $('username-input'),
+          usernameError: $('username-error'),
+          usernameCancel: $('username-cancel')
+        };
+        this.ctx = this.dom.canvas.getContext('2d');
+        this.dom.year.textContent = new Date().getFullYear();
+        this.baseTitle = document.title;
+      },
+
+      /* ============================================================
+         STORAGE
+         ============================================================ */
+      loadState() {
+        try {
+          const savedTheme = localStorage.getItem(this.KEYS.theme);
+          if (savedTheme === 'light' || savedTheme === 'dark') this.state.theme = savedTheme;
+          const savedSound = localStorage.getItem(this.KEYS.sound);
+          if (savedSound !== null) this.state.soundOn = savedSound === '1';
+          const savedName = localStorage.getItem(this.KEYS.lastUsername);
+          if (savedName) this.state.username = this.sanitizeName(savedName) || '';
+          const raw = localStorage.getItem(this.KEYS.leaderboard);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              this.state.leaderboard = parsed
+                .filter((entry) => entry && typeof entry.name === 'string' && Number.isFinite(Number(entry.score)))
+                .map((entry) => ({
+                  name: this.sanitizeName(entry.name) || 'Pilot',
+                  score: Math.max(0, Math.floor(Number(entry.score))),
+                  date: typeof entry.date === 'number' ? entry.date : Date.now()
+                }))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, this.MAX_LEADERBOARD);
+            }
+          }
+        } catch (error) {
+          console.error('Gagal memuat penyimpanan:', error);
+          this.state.leaderboard = [];
+        }
+        this.state.best = this.state.leaderboard.length ? this.state.leaderboard[0].score : 0;
+      },
+
+      saveLeaderboard() {
+        try {
+          localStorage.setItem(this.KEYS.leaderboard, JSON.stringify(this.state.leaderboard));
+        } catch (error) {
+          console.error('Gagal menyimpan papan skor:', error);
+          this.showToast('Gagal menyimpan skor', 'danger');
+        }
+      },
+
+      saveUsername(name) {
+        try {
+          localStorage.setItem(this.KEYS.lastUsername, name);
+        } catch (error) {
+          console.error('Gagal menyimpan nama pilot:', error);
+        }
+      },
+
+      /* ============================================================
+         THEME & SOUND UI
+         ============================================================ */
+      applyTheme() {
+        const dark = this.state.theme === 'dark';
+        this.dom.html.classList.toggle('dark', dark);
+        this.dom.iconMoon.hidden = dark;
+        this.dom.iconSun.hidden = !dark;
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', dark ? '#070b18' : '#eef2f9');
+        try { localStorage.setItem(this.KEYS.theme, this.state.theme); } catch (error) { /* ignore */ }
+        this.syncPalette();
+      },
+
+      toggleTheme() {
+        this.state.theme = this.state.theme === 'dark' ? 'light' : 'dark';
+        this.applyTheme();
+        this.seedStars();
+      },
+
+      syncPalette() {
+        const styles = getComputedStyle(this.dom.html);
+        const read = (name) => styles.getPropertyValue(name).trim();
+        this.palette = {
+          bg1: read('--game-bg1'),
+          bg2: read('--game-bg2'),
+          star: read('--game-star'),
+          ship: read('--game-ship'),
+          shipGlow: read('--game-ship-glow'),
+          asteroid: read('--game-asteroid'),
+          asteroidLine: read('--game-asteroid-line'),
+          accent: read('--game-accent'),
+          danger: read('--game-danger'),
+          shield: read('--game-shield'),
+          slow: read('--game-slow')
+        };
+      },
+
+      applySound() {
+        this.dom.iconSoundOn.hidden = !this.state.soundOn;
+        this.dom.iconSoundOff.hidden = this.state.soundOn;
+        this.dom.soundToggle.setAttribute('aria-label', this.state.soundOn ? 'Matikan suara' : 'Nyalakan suara');
+        try { localStorage.setItem(this.KEYS.sound, this.state.soundOn ? '1' : '0'); } catch (error) { /* ignore */ }
+      },
+
+      toggleSound() {
+        this.state.soundOn = !this.state.soundOn;
+        this.applySound();
+        if (this.state.soundOn) {
+          this.ensureAudio();
+          this.sfx('click');
+          this.showToast('Suara aktif', 'success');
+        } else {
+          this.showToast('Suara dimatikan');
+        }
+      },
+
+      /* ============================================================
+         AUDIO SYNTH
+         ============================================================ */
+      ensureAudio() {
+        if (this.audio) {
+          if (this.audio.state === 'suspended') this.audio.resume().catch(() => {});
+          return this.audio;
+        }
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        try {
+          this.audio = new Ctx();
+        } catch (error) {
+          this.audio = null;
+        }
+        return this.audio;
+      },
+
+      tone(freq, duration, type, volume, slideTo, delay) {
+        if (!this.state.soundOn) return;
+        const ctx = this.ensureAudio();
+        if (!ctx) return;
+        const start = ctx.currentTime + (delay || 0);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), start + duration);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume || 0.08), start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration + 0.02);
+      },
+
+      noise(duration, volume) {
+        if (!this.state.soundOn) return;
+        const ctx = this.ensureAudio();
+        if (!ctx) return;
+        const frames = Math.floor(ctx.sampleRate * duration);
+        const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < frames; i += 1) {
+          data[i] = (Math.random() * 2 - 1) * (1 - i / frames);
+        }
+        const source = ctx.createBufferSource();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 900;
+        gain.gain.value = volume || 0.16;
+        source.buffer = buffer;
+        source.connect(filter).connect(gain).connect(ctx.destination);
+        source.start();
+      },
+
+      sfx(name) {
+        switch (name) {
+          case 'click':
+            this.tone(560, 0.07, 'square', 0.045, 420);
+            break;
+          case 'start':
+            this.tone(392, 0.1, 'triangle', 0.07);
+            this.tone(523, 0.12, 'triangle', 0.07, null, 0.1);
+            this.tone(784, 0.16, 'triangle', 0.06, null, 0.2);
+            break;
+          case 'hit':
+            this.tone(180, 0.4, 'sawtooth', 0.12, 45);
+            this.noise(0.35, 0.2);
+            break;
+          case 'shieldBreak':
+            this.tone(420, 0.18, 'square', 0.07, 140);
+            this.noise(0.2, 0.12);
+            break;
+          case 'power':
+            this.tone(660, 0.1, 'sine', 0.07);
+            this.tone(990, 0.16, 'sine', 0.06, null, 0.08);
+            break;
+          case 'level':
+            this.tone(523, 0.09, 'square', 0.05);
+            this.tone(659, 0.09, 'square', 0.05, null, 0.09);
+            this.tone(880, 0.14, 'square', 0.05, null, 0.18);
+            break;
+          case 'gameover':
+            this.tone(320, 0.22, 'sawtooth', 0.08, 260);
+            this.tone(220, 0.26, 'sawtooth', 0.08, 160, 0.2);
+            this.tone(140, 0.5, 'sine', 0.09, 60, 0.42);
+            break;
+          default:
+            break;
+        }
+      },
+
+      /* ============================================================
+         SCREENS
+         ============================================================ */
+      showScreen(name) {
+        this.state.screen = name;
+        Object.entries(this.dom.screens).forEach(([key, el]) => {
+          const active = key === name;
+          el.hidden = !active;
+          el.setAttribute('aria-hidden', String(!active));
+        });
+        this.dom.pauseBtn.hidden = name !== 'playing';
+        if (name === 'menu') this.updatePilotUI();
+        if (name === 'leaderboard') this.renderLeaderboard();
+      },
+
+      showToast(message, variant) {
+        const toast = document.createElement('div');
+        toast.className = 'toast' + (variant ? ' toast-' + variant : '');
+        toast.textContent = message;
+        this.dom.toastContainer.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        window.setTimeout(() => {
+          toast.classList.remove('show');
+          window.setTimeout(() => toast.remove(), 260);
+        }, 1900);
+      },
+
+      openHelp() {
+        this.showScreen('help');
+      },
+
+      openLeaderboard(returnTo) {
+        this.leaderboardReturn = returnTo || 'menu';
+        this.showScreen('leaderboard');
+      },
+
+      closeLeaderboard() {
+        this.showScreen(this.leaderboardReturn || 'menu');
+      },
+
+      /* ============================================================
+         USERNAME
+         ============================================================ */
+      sanitizeName(value) {
+        if (typeof value !== 'string') return '';
+        return value
+          .replace(/[\u0000-\u001F\u007F<>]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 15);
+      },
+
+      updatePilotUI() {
+        this.dom.menuPilotName.textContent = this.state.username || 'Tamu';
+      },
+
+      openUsernameModal(firstRun) {
+        this.usernameModalFirstRun = Boolean(firstRun);
+        this.dom.usernameInput.value = this.state.username || '';
+        this.dom.usernameError.textContent = '';
+        this.dom.usernameCancel.hidden = Boolean(firstRun);
+        this.dom.usernameModal.hidden = false;
+        window.setTimeout(() => this.dom.usernameInput.focus(), 40);
+      },
+
+      closeUsernameModal() {
+        this.dom.usernameModal.hidden = true;
+      },
+
+      submitUsername(event) {
+        event.preventDefault();
+        const name = this.sanitizeName(this.dom.usernameInput.value);
+        if (!name) {
+          this.dom.usernameError.textContent = 'Nama tidak boleh kosong.';
+          this.dom.usernameInput.focus();
+          return;
+        }
+        if (name.length < 2) {
+          this.dom.usernameError.textContent = 'Minimal 2 karakter.';
+          this.dom.usernameInput.focus();
+          return;
+        }
+        this.state.username = name;
+        this.saveUsername(name);
+        this.updatePilotUI();
+        this.dom.usernameError.textContent = '';
+        this.closeUsernameModal();
+        this.sfx('click');
+        if (this.usernameModalFirstRun) {
+          this.usernameModalFirstRun = false;
+          this.showToast('Selamat datang, ' + name, 'success');
+        }
+      },
+
+      /* ============================================================
+         LEADERBOARD
+         ============================================================ */
+      renderLeaderboard() {
+        const list = this.dom.leaderboardList;
+        list.replaceChildren();
+        if (!this.state.leaderboard.length) {
+          const empty = document.createElement('div');
+          empty.className = 'lb-empty';
+          empty.textContent = 'Belum ada skor. Jadilah pilot pertama yang mencatatkan nama!';
+          list.appendChild(empty);
+          return;
+        }
+        this.state.leaderboard.forEach((entry, index) => {
+          const row = document.createElement('div');
+          row.className = 'lb-row';
+          if (index === 0) row.classList.add('is-top');
+          if (this.state.lastEntry && entry.date === this.state.lastEntry.date && entry.name === this.state.lastEntry.name) {
+            row.classList.add('is-me');
+          }
+          const rank = document.createElement('span');
+          rank.className = 'lb-rank';
+          rank.textContent = String(index + 1).padStart(2, '0');
+          const name = document.createElement('span');
+          name.className = 'lb-name';
+          name.textContent = entry.name;
+          const score = document.createElement('span');
+          score.className = 'lb-score';
+          score.textContent = entry.score.toLocaleString('id-ID');
+          row.append(rank, name, score);
+          list.appendChild(row);
+        });
+      },
+
+      submitScore(score) {
+        if (score <= 0) return;
+        const entry = { name: this.state.username || 'Pilot', score, date: Date.now() };
+        this.state.leaderboard.push(entry);
+        this.state.leaderboard.sort((a, b) => b.score - a.score);
+        this.state.leaderboard = this.state.leaderboard.slice(0, this.MAX_LEADERBOARD);
+        this.state.lastEntry = entry;
+        this.state.best = this.state.leaderboard.length ? this.state.leaderboard[0].score : 0;
+        this.saveLeaderboard();
+        this.renderLeaderboard();
+      },
+
+      resetLeaderboard() {
+        if (!this.state.leaderboard.length) {
+          this.showToast('Papan skor sudah kosong');
+          return;
+        }
+        if (!window.confirm('Hapus semua skor di papan peringkat?')) return;
+        this.state.leaderboard = [];
+        this.state.lastEntry = null;
+        this.state.best = 0;
+        this.saveLeaderboard();
+        this.renderLeaderboard();
+        this.showToast('Papan skor direset', 'danger');
+      },
+
+      /* ============================================================
+         GAME FLOW
+         ============================================================ */
+      startGame() {
+        if (!this.state.username) {
+          this.openUsernameModal(true);
+          return;
+        }
+        if (this.state.screen === 'leaderboard' || this.state.screen === 'gameover') {
+          this.leaderboardReturn = 'menu';
+        }
+        const s = this.state;
+        s.playing = true;
+        s.paused = false;
+        s.score = 0;
+        s.scoreShown = -1;
+        s.level = 1;
+        s.elapsed = 0;
+        s.shield = false;
+        s.slowUntil = 0;
+        s.nextPowerAt = 10 + Math.random() * 6;
+        s.spawnTimer = 0.7;
+        s.shake = 0;
+        s.invulnUntil = performance.now() + 1200;
+        s.passed = 0;
+        s.savedThisRun = false;
+        s.leaderboardReturn = 'menu';
+        s.lastEntry = null;
+        s.asteroids = [];
+        s.particles = [];
+        s.powerups = [];
+        s.trailTimer = 0;
+        s.levelFlash = 0;
+        s.player.x = this.canvasW / 2;
+        s.player.y = this.canvasH - 74;
+        s.player.targetX = null;
+        this.seedStars();
+        this.syncHud(true);
+        this.showScreen('playing');
+        document.title = this.baseTitle;
+        this.ensureAudio();
+        this.sfx('start');
+      },
+
+      pauseGame() {
+        if (!this.state.playing || this.state.paused) return;
+        this.state.paused = true;
+        this.showScreen('pause');
+      },
+
+      resumeGame() {
+        if (!this.state.playing) return;
+        this.state.paused = false;
+        this.state.lastFrame = performance.now();
+        this.showScreen('playing');
+        this.sfx('click');
+      },
+
+      quitToMenu() {
+        this.state.playing = false;
+        this.state.paused = false;
+        this.state.asteroids = [];
+        this.state.powerups = [];
+        this.state.particles = [];
+        this.state.player.targetX = null;
+        this.state.shield = false;
+        this.state.slowUntil = 0;
+        this.state.score = 0;
+        this.syncHud(true);
+        this.showScreen('menu');
+        document.title = this.baseTitle;
+      },
+
+      gameOver() {
+        if (!this.state.playing) return;
+        const s = this.state;
+        s.playing = false;
+        s.paused = false;
+        s.savedThisRun = true;
+        const finalScore = Math.floor(s.score);
+        const previousBest = s.best;
+        this.explode(s.player.x, s.player.y, 46, this.palette.danger, 260);
+        s.shake = 18;
+        this.sfx('hit');
+        window.setTimeout(() => this.sfx('gameover'), 260);
+
+        const isRecord = finalScore > previousBest;
+        this.submitScore(finalScore);
+
+        this.dom.goScore.textContent = finalScore.toLocaleString('id-ID');
+        this.dom.goLevel.textContent = String(s.level);
+        this.dom.goTime.textContent = Math.floor(s.elapsed) + 's';
+        this.dom.recordBadge.hidden = !isRecord;
+        this.dom.pauseBtn.hidden = true;
+        this.showScreen('gameover');
+        document.title = 'Skor ' + finalScore.toLocaleString('id-ID') + ' — Asteroid Dodge';
+      },
+
+      /* ============================================================
+         CANVAS & WORLD
+         ============================================================ */
+      resize() {
+        const rect = this.dom.stage.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.canvasW = Math.max(1, Math.round(rect.width));
+        this.canvasH = Math.max(1, Math.round(rect.height));
+        this.dom.canvas.width = Math.round(this.canvasW * dpr);
+        this.dom.canvas.height = Math.round(this.canvasH * dpr);
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.state.player.y = this.canvasH - 74;
+        if (!this.state.playing) {
+          this.state.player.x = this.canvasW / 2;
+        } else {
+          this.state.player.x = Math.min(this.state.player.x, this.canvasW - 24);
+        }
+        this.seedStars();
+      },
+
+      seedStars() {
+        const count = Math.round((this.canvasW * this.canvasH) / 5200);
+        const stars = [];
+        for (let i = 0; i < count; i += 1) {
+          const layer = Math.random();
+          stars.push({
+            x: Math.random() * this.canvasW,
+            y: Math.random() * this.canvasH,
+            size: layer > 0.82 ? 1.8 : layer > 0.5 ? 1.2 : 0.8,
+            speed: 14 + layer * 46,
+            alpha: 0.22 + layer * 0.6,
+            twinkle: Math.random() * Math.PI * 2
+          });
+        }
+        this.state.stars = stars;
+      },
+
+      spawnAsteroid() {
+        const s = this.state;
+        const sizeRoll = Math.random();
+        const radius = sizeRoll > 0.85 ? 24 + Math.random() * 9 : sizeRoll > 0.55 ? 15 + Math.random() * 7 : 9 + Math.random() * 5;
+        const x = radius + 12 + Math.random() * Math.max(1, this.canvasW - radius * 2 - 24);
+        const speed = 74 + Math.random() * 58 + (s.level - 1) * 17;
+        const shape = [];
+        const points = 8;
+        for (let i = 0; i < points; i += 1) {
+          shape.push(0.72 + Math.random() * 0.38);
+        }
+        s.asteroids.push({
+          x,
+          y: -radius - 10,
+          radius,
+          speed,
+          rot: Math.random() * Math.PI * 2,
+          spin: (Math.random() - 0.5) * 1.6,
+          shape,
+          passed: false
+        });
+        if (s.level >= 4 && Math.random() < 0.16) {
+          s.spawnTimer = -0.18;
+        } else if (s.level >= 7 && Math.random() < 0.2) {
+          s.spawnTimer = -0.22;
+        }
+      },
+
+      spawnPowerup() {
+        const s = this.state;
+        const type = Math.random() < 0.55 ? 'shield' : 'slow';
+        const x = 34 + Math.random() * Math.max(1, this.canvasW - 68);
+        s.powerups.push({
+          x,
+          y: -26,
+          type,
+          radius: 13,
+          speed: 72,
+          rot: Math.random() * Math.PI * 2,
+          pulse: Math.random() * Math.PI * 2
+        });
+      },
+
+      explode(x, y, count, color, speed) {
+        const s = this.state;
+        for (let i = 0; i < count; i += 1) {
+          const angle = Math.random() * Math.PI * 2;
+          const velocity = speed * (0.25 + Math.random() * 0.75);
+          s.particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * velocity,
+            vy: Math.sin(angle) * velocity,
+            size: 1.2 + Math.random() * 2.8,
+            life: 0,
+            maxLife: 0.35 + Math.random() * 0.55,
+            color,
+            drag: 1.6
+          });
+        }
+      },
+
+      /* ============================================================
+         INPUT
+         ============================================================ */
+      bindEvents() {
+        window.addEventListener('resize', () => this.resize());
+        if (window.ResizeObserver) {
+          this.resizeObserver = new ResizeObserver(() => this.resize());
+          this.resizeObserver.observe(this.dom.stage);
+        }
+
+        window.addEventListener('keydown', (event) => this.onKeyDown(event));
+        window.addEventListener('keyup', (event) => this.onKeyUp(event));
+        window.addEventListener('blur', () => this.clearKeys());
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden && this.state.playing && !this.state.paused) this.pauseGame();
+        });
+
+        this.dom.btnPlay.addEventListener('click', () => this.startGame());
+        this.dom.btnRetry.addEventListener('click', () => this.startGame());
+        this.dom.btnHelp.addEventListener('click', () => this.openHelp());
+        this.dom.btnLeaderboard.addEventListener('click', () => this.openLeaderboard('menu'));
+        this.dom.btnLbBack.addEventListener('click', () => this.closeLeaderboard());
+        this.dom.btnLbReset.addEventListener('click', () => this.resetLeaderboard());
+        this.dom.btnResume.addEventListener('click', () => this.resumeGame());
+        this.dom.btnPauseMenu.addEventListener('click', () => this.quitToMenu());
+        this.dom.btnGoLeaderboard.addEventListener('click', () => this.openLeaderboard('menu'));
+        this.dom.btnGoMenu.addEventListener('click', () => this.quitToMenu());
+        this.dom.editPilot.addEventListener('click', () => {
+          this.usernameModalFirstRun = false;
+          this.openUsernameModal(false);
+        });
+        this.dom.pauseBtn.addEventListener('click', () => this.pauseGame());
+        this.dom.soundToggle.addEventListener('click', () => this.toggleSound());
+        this.dom.themeToggle.addEventListener('click', () => this.toggleTheme());
+
+        document.querySelectorAll('[data-back]').forEach((button) => {
+          button.addEventListener('click', () => this.showScreen('menu'));
+        });
+
+        this.dom.usernameForm.addEventListener('submit', (event) => this.submitUsername(event));
+        this.dom.usernameCancel.addEventListener('click', () => {
+          this.closeUsernameModal();
+          if (this.usernameModalFirstRun) this.showScreen('menu');
+        });
+
+        this.dom.canvas.addEventListener('pointerdown', (event) => this.onPointerDown(event));
+        this.dom.canvas.addEventListener('pointermove', (event) => this.onPointerMove(event));
+        window.addEventListener('pointerup', () => { this.pointerActive = false; });
+        this.dom.canvas.addEventListener('pointercancel', () => { this.pointerActive = false; });
+
+        this.keys = { left: false, right: false };
+      },
+
+      clearKeys() {
+        if (this.keys) {
+          this.keys.left = false;
+          this.keys.right = false;
+        }
+      },
+
+      onKeyDown(event) {
+        const key = event.key;
+        if (!this.dom.usernameModal.hidden) return;
+        if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+          if (this.state.playing) event.preventDefault();
+          this.keys.left = true;
+        } else if (key === 'ArrowRight' || key === 'd' || key === 'D') {
+          if (this.state.playing) event.preventDefault();
+          this.keys.right = true;
+        } else if (key === 'Escape' || key === 'p' || key === 'P') {
+          if (this.state.playing) {
+            event.preventDefault();
+            if (this.state.paused) this.resumeGame();
+            else this.pauseGame();
+          }
+        } else if (key === 'Enter' || key === ' ') {
+          const tag = event.target && event.target.tagName;
+          if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+          if (this.state.screen === 'menu') {
+            event.preventDefault();
+            this.startGame();
+          } else if (this.state.screen === 'gameover') {
+            event.preventDefault();
+            this.startGame();
+          }
+        }
+        if (this.state.playing && !this.state.paused) this.state.player.targetX = null;
+      },
+
+      onKeyUp(event) {
+        const key = event.key;
+        if (key === 'ArrowLeft' || key === 'a' || key === 'A') this.keys.left = false;
+        if (key === 'ArrowRight' || key === 'd' || key === 'D') this.keys.right = false;
+      },
+
+      onPointerDown(event) {
+        this.ensureAudio();
+        if (!this.state.playing || this.state.paused) return;
+        this.pointerActive = true;
+        this.updatePointerTarget(event);
+      },
+
+      onPointerMove(event) {
+        if (!this.pointerActive) return;
+        this.updatePointerTarget(event);
+      },
+
+      updatePointerTarget(event) {
+        const rect = this.dom.canvas.getBoundingClientRect();
+        const scale = this.canvasW / rect.width;
+        const x = (event.clientX - rect.left) * scale;
+        this.state.player.targetX = Math.max(18, Math.min(this.canvasW - 18, x));
+        this.keys.left = false;
+        this.keys.right = false;
+      },
+
+      /* ============================================================
+         UPDATE LOOP
+         ============================================================ */
+      loop(timestamp) {
+        const dt = Math.min((timestamp - this.state.lastFrame) / 1000, 0.05);
+        this.state.lastFrame = timestamp;
+        this.update(dt);
+        this.draw(timestamp / 1000);
+        this.rafId = requestAnimationFrame((t) => this.loop(t));
+      },
+
+      update(dt) {
+        const s = this.state;
+        this.updateStars(dt);
+
+        if (s.playing && !s.paused) {
+          this.updateGame(dt);
+        }
+
+        this.updateParticles(dt);
+        s.shake = Math.max(0, s.shake - dt * 44);
+        s.levelFlash = Math.max(0, s.levelFlash - dt * 2.2);
+      },
+
+      updateStars(dt) {
+        const s = this.state;
+        const boost = s.playing && !s.paused ? 2.1 : 1;
+        const height = this.canvasH;
+        for (let i = 0; i < s.stars.length; i += 1) {
+          const star = s.stars[i];
+          star.y += star.speed * dt * boost;
+          star.twinkle += dt * 2;
+          if (star.y > height + 2) {
+            star.y = -2;
+            star.x = Math.random() * this.canvasW;
+          }
+        }
+      },
+
+      updateGame(dt) {
+        const s = this.state;
+        s.elapsed += dt;
+        s.score += dt * 10;
+
+        const newLevel = 1 + Math.floor(s.elapsed / this.LEVEL_DURATION);
+        if (newLevel !== s.level) {
+          s.level = newLevel;
+          s.levelFlash = 1;
+          this.sfx('level');
+          this.showToast('Level ' + s.level + ' — asteroid makin ganas', 'accent');
+        }
+
+        const player = s.player;
+        const speed = 330;
+        let direction = 0;
+        if (this.keys.left) direction -= 1;
+        if (this.keys.right) direction += 1;
+        if (direction !== 0) {
+          player.x += direction * speed * dt;
+          player.targetX = null;
+        } else if (player.targetX !== null) {
+          const diff = player.targetX - player.x;
+          if (Math.abs(diff) < 1.5) {
+            player.x = player.targetX;
+          } else {
+            player.x += diff * Math.min(1, 14 * dt);
+          }
+        }
+        player.x = Math.max(18, Math.min(this.canvasW - 18, player.x));
+        player.y = this.canvasH - 74;
+
+        s.trailTimer -= dt;
+        if (s.trailTimer <= 0) {
+          s.trailTimer = 0.028;
+          const flame = this.palette.shipGlow;
+          for (let i = 0; i < 2; i += 1) {
+            s.particles.push({
+              x: player.x + (Math.random() - 0.5) * 6,
+              y: player.y + 12,
+              vx: (Math.random() - 0.5) * 34,
+              vy: 70 + Math.random() * 60,
+              size: 1 + Math.random() * 1.8,
+              life: 0,
+              maxLife: 0.24 + Math.random() * 0.2,
+              color: flame,
+              drag: 0.6
+            });
+          }
+        }
+
+        s.spawnTimer -= dt;
+        if (s.spawnTimer <= 0) {
+          this.spawnAsteroid();
+          const interval = Math.max(0.34, this.SPAWN_BASE - (s.level - 1) * 0.055);
+          s.spawnTimer = interval * (0.78 + Math.random() * 0.5);
+        }
+
+        if (s.elapsed >= s.nextPowerAt) {
+          this.spawnPowerup();
+          s.nextPowerAt = s.elapsed + 11 + Math.random() * 8;
+        }
+
+        this.updateAsteroids(dt);
+        this.updatePowerups(dt);
+        this.syncHud();
+      },
+
+      updateAsteroids(dt) {
+        const s = this.state;
+        const slowFactor = performance.now() < s.slowUntil ? 0.42 : 1;
+        const player = s.player;
+
+        for (let i = s.asteroids.length - 1; i >= 0; i -= 1) {
+          const rock = s.asteroids[i];
+          rock.y += rock.speed * dt * slowFactor;
+          rock.rot += rock.spin * dt * slowFactor;
+
+          if (!rock.passed && rock.y - rock.radius > player.y + 26) {
+            rock.passed = true;
+            s.passed += 1;
+            s.score += 4;
+            s.shake = Math.min(s.shake + 1.2, 6);
+          }
+
+          if (rock.y - rock.radius > this.canvasH + 14) {
+            s.asteroids.splice(i, 1);
+            continue;
+          }
+
+          const dx = rock.x - player.x;
+          const dy = rock.y - (player.y - 4);
+          const reach = rock.radius * 0.86 + player.radius;
+          if (dx * dx + dy * dy < reach * reach) {
+            if (performance.now() < s.invulnUntil) continue;
+            if (s.shield) {
+              s.shield = false;
+              s.invulnUntil = performance.now() + 900;
+              s.shake = 12;
+              this.explode(rock.x, rock.y, 22, this.palette.shield, 190);
+              s.asteroids.splice(i, 1);
+              this.sfx('shieldBreak');
+              this.showToast('Shield hancur!', 'accent');
+              continue;
+            }
+            this.gameOver();
+            return;
+          }
+        }
+      },
+
+      updatePowerups(dt) {
+        const s = this.state;
+        const player = s.player;
+        for (let i = s.powerups.length - 1; i >= 0; i -= 1) {
+          const item = s.powerups[i];
+          item.y += item.speed * dt;
+          item.rot += dt * 1.4;
+          item.pulse += dt * 3;
+
+          if (item.y - item.radius > this.canvasH + 20) {
+            s.powerups.splice(i, 1);
+            continue;
+          }
+
+          const dx = item.x - player.x;
+          const dy = item.y - player.y;
+          const reach = item.radius + player.radius + 3;
+          if (dx * dx + dy * dy < reach * reach) {
+            if (item.type === 'shield') {
+              s.shield = true;
+              this.showToast('Shield aktif', 'success');
+            } else {
+              s.slowUntil = performance.now() + 5000;
+              this.showToast('Slow-Mo 5 detik', 'success');
+            }
+            this.explode(item.x, item.y, 16, item.type === 'shield' ? this.palette.shield : this.palette.slow, 150);
+            s.powerups.splice(i, 1);
+            this.sfx('power');
+          }
+        }
+      },
+
+      updateParticles(dt) {
+        const s = this.state;
+        for (let i = s.particles.length - 1; i >= 0; i -= 1) {
+          const p = s.particles[i];
+          p.life += dt;
+          if (p.life >= p.maxLife) {
+            s.particles.splice(i, 1);
+            continue;
+          }
+          const damping = Math.max(0, 1 - p.drag * dt);
+          p.vx *= damping;
+          p.vy *= damping;
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+        }
+      },
+
+      syncHud(force) {
+        const s = this.state;
+        const shown = Math.floor(s.score);
+        if (force || shown !== s.scoreShown) {
+          s.scoreShown = shown;
+          this.dom.hudScore.textContent = shown.toLocaleString('id-ID');
+        }
+        if (force || this.dom.hudLevel.textContent !== String(s.level)) {
+          this.dom.hudLevel.textContent = String(s.level);
+        }
+        const slowActive = performance.now() < s.slowUntil;
+        this.dom.chipShield.hidden = !s.shield;
+        this.dom.chipSlow.hidden = !slowActive;
+      },
+
+      /* ============================================================
+         DRAW
+         ============================================================ */
+      draw(time) {
+        const ctx = this.ctx;
+        const w = this.canvasW;
+        const h = this.canvasH;
+        const s = this.state;
+        const p = this.palette;
+
+        ctx.save();
+        const shakeX = s.shake > 0 ? (Math.random() - 0.5) * s.shake : 0;
+        const shakeY = s.shake > 0 ? (Math.random() - 0.5) * s.shake : 0;
+        ctx.translate(shakeX, shakeY);
+
+        const bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, p.bg1);
+        bg.addColorStop(1, p.bg2);
+        ctx.fillStyle = bg;
+        ctx.fillRect(-24, -24, w + 48, h + 48);
+
+        this.drawStars(ctx, time);
+        this.drawAsteroids(ctx);
+        this.drawPowerups(ctx, time);
+        this.drawParticles(ctx);
+        this.drawShip(ctx, time);
+
+        if (s.levelFlash > 0) {
+          ctx.fillStyle = 'rgba(232, 121, 249,' + (s.levelFlash * 0.1).toFixed(3) + ')';
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        const vignette = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.32, w / 2, h / 2, Math.max(w, h) * 0.72);
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, this.state.theme === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(15,23,42,0.12)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, w, h);
+
+        if (s.playing && !s.paused && performance.now() < s.invulnUntil) {
+          ctx.strokeStyle = p.shield;
+          ctx.globalAlpha = 0.5 + Math.sin(time * 12) * 0.2;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(s.player.x, s.player.y - 2, 26, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+
+        ctx.restore();
+      },
+
+      drawStars(ctx, time) {
+        const s = this.state;
+        const p = this.palette;
+        const isDark = s.theme === 'dark';
+        for (let i = 0; i < s.stars.length; i += 1) {
+          const star = s.stars[i];
+          const twinkle = 0.72 + Math.sin(time * 2 + star.twinkle) * 0.28;
+          ctx.globalAlpha = Math.min(1, star.alpha * twinkle);
+          ctx.fillStyle = p.star;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = isDark ? 0.16 : 0.1;
+        ctx.strokeStyle = p.star;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, this.canvasH * 0.32);
+        ctx.lineTo(this.canvasW, this.canvasH * 0.32);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      },
+
+      drawAsteroids(ctx) {
+        const s = this.state;
+        const p = this.palette;
+        for (let i = 0; i < s.asteroids.length; i += 1) {
+          const rock = s.asteroids[i];
+          ctx.save();
+          ctx.translate(rock.x, rock.y);
+          ctx.rotate(rock.rot);
+          ctx.beginPath();
+          const points = rock.shape.length;
+          for (let j = 0; j < points; j += 1) {
+            const angle = (j / points) * Math.PI * 2;
+            const r = rock.radius * rock.shape[j];
+            const px = Math.cos(angle) * r;
+            const py = Math.sin(angle) * r;
+            if (j === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fillStyle = p.asteroid;
+          ctx.globalAlpha = 0.92;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = p.asteroidLine;
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(255,255,255,0.14)';
+          ctx.beginPath();
+          ctx.arc(-rock.radius * 0.28, -rock.radius * 0.24, rock.radius * 0.24, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      },
+
+      drawPowerups(ctx, time) {
+        const s = this.state;
+        const p = this.palette;
+        for (let i = 0; i < s.powerups.length; i += 1) {
+          const item = s.powerups[i];
+          const color = item.type === 'shield' ? p.shield : p.slow;
+          const pulse = 1 + Math.sin(item.pulse) * 0.08;
+          ctx.save();
+          ctx.translate(item.x, item.y);
+          ctx.rotate(item.rot);
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 16;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          for (let j = 0; j < 6; j += 1) {
+            const angle = (j / 6) * Math.PI * 2 - Math.PI / 2;
+            const px = Math.cos(angle) * item.radius * pulse;
+            const py = Math.sin(angle) * item.radius * pulse;
+            if (j === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fillStyle = color;
+          ctx.globalAlpha = 0.14;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          ctx.rotate(-item.rot);
+          ctx.fillStyle = color;
+          ctx.font = '700 11px ui-monospace, Menlo, monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(item.type === 'shield' ? 'S' : 'T', 0, 0.5);
+          ctx.restore();
+        }
+      },
+
+      drawParticles(ctx) {
+        const s = this.state;
+        for (let i = 0; i < s.particles.length; i += 1) {
+          const particle = s.particles[i];
+          const progress = particle.life / particle.maxLife;
+          ctx.globalAlpha = Math.max(0, 1 - progress);
+          ctx.fillStyle = particle.color;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size * (1 - progress * 0.5), 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      },
+
+      drawShip(ctx, time) {
+        const s = this.state;
+        const p = this.palette;
+        if (!s.playing && s.screen !== 'gameover') {
+          const bob = Math.sin(time * 1.6) * 4;
+          this.paintShip(ctx, s.player.x, this.canvasH - 120 + bob, time, 0.55);
+          return;
+        }
+        if (s.playing) {
+          this.paintShip(ctx, s.player.x, s.player.y, time, 1);
+        }
+      },
+
+      paintShip(ctx, x, y, time, alpha) {
+        const p = this.palette;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.globalAlpha = alpha;
+        ctx.shadowColor = p.shipGlow;
+        ctx.shadowBlur = 18;
+
+        const flame = 9 + Math.sin(time * 26) * 3;
+        ctx.beginPath();
+        ctx.moveTo(-4.5, 8);
+        ctx.lineTo(0, 10 + flame);
+        ctx.lineTo(4.5, 8);
+        ctx.closePath();
+        ctx.fillStyle = p.accent;
+        ctx.globalAlpha = alpha * 0.85;
+        ctx.fill();
+
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.moveTo(0, -17);
+        ctx.lineTo(6, -4);
+        ctx.lineTo(12, 7);
+        ctx.lineTo(4.5, 9);
+        ctx.lineTo(-4.5, 9);
+        ctx.lineTo(-12, 7);
+        ctx.lineTo(-6, -4);
+        ctx.closePath();
+        ctx.fillStyle = p.ship;
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.moveTo(0, -10);
+        ctx.lineTo(4, 1);
+        ctx.lineTo(-4, 1);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255,255,255,0.88)';
+        ctx.fill();
+        ctx.restore();
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => Game.init());
+  </script>
+</body>
+</html>
